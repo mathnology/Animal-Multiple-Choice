@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="id">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animal Guessing Game</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100%;
+            color: #333;
+        }
+
+        .game-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .instructions {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .score-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+        }
+
+        .score {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .animal-display {
+            font-size: 8rem;
+            margin: 30px 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .options-container {
+            display: grid;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .option-button {
+            padding: 15px 25px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: 3px solid #e2e8f0;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .option-button.correct {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            animation: correctPulse 0.6s ease;
+        }
+
+        .option-button.incorrect {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            animation: shake 0.6s ease;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .feedback {
+            margin: 20px 0;
+            font-size: 1.4rem;
+            font-weight: bold;
+            min-height: 30px;
+        }
+
+        .feedback.correct {
+            color: #38a169;
+        }
+
+        .feedback.incorrect {
+            color: #e53e3e;
+        }
+
+        .next-button {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .next-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .next-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .option-button.selected {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(237, 137, 54, 0.3);
+        }
+
+        .confirm-button, .cancel-button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-button {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+
+        .confirm-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(72, 187, 120, 0.3);
+        }
+
+        .cancel-button {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+        }
+
+        .cancel-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(245, 101, 101, 0.3);
+        }
+
+        .pronunciation {
+            font-size: 1rem;
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="game-container">
+   <h1 class="game-title" id="gameTitle">Tebak Nama Hewan</h1>
+   <p class="instructions" id="instructions">Lihat gambar hewan dan pilih nama yang benar dalam bahasa Inggris!</p>
+   <div class="score-section">
+    <div class="score" id="scoreLabel">
+     Skor: <span id="score">0</span>
+    </div>
+    <div class="score">
+     Soal: <span id="questionNumber">1</span>/10
+    </div>
+   </div>
+   <div class="animal-display" id="animalEmoji">
+    🐶
+   </div>
+   <div class="options-container" id="optionsContainer"><button class="option-button" onclick="selectAnswer(0)">Dog</button> <button class="option-button" onclick="selectAnswer(1)">Cat</button> <button class="option-button" onclick="selectAnswer(2)">Bird</button>
+   </div>
+   <div class="feedback" id="feedback"></div><button class="next-button" id="nextButton" onclick="nextQuestion()" style="display: none;">Soal Berikutnya</button>
+  </div>
+  <script>
+        const defaultConfig = {
+            game_title: "Tebak Nama Hewan",
+            instruction_text: "Lihat gambar hewan dan pilih nama yang benar dalam bahasa Inggris!",
+            score_label: "Skor"
+        };
+
+        const animals = [
+            { emoji: '🐶', name: 'Dog', pronunciation: '/dɔːɡ/' },
+            { emoji: '🐱', name: 'Cat', pronunciation: '/kæt/' },
+            { emoji: '🐦', name: 'Bird', pronunciation: '/bɜːrd/' },
+            { emoji: '🐸', name: 'Frog', pronunciation: '/frɔːɡ/' },
+            { emoji: '🐰', name: 'Rabbit', pronunciation: '/ˈræbɪt/' },
+            { emoji: '🐻', name: 'Bear', pronunciation: '/beər/' },
+            { emoji: '🐯', name: 'Tiger', pronunciation: '/ˈtaɪɡər/' },
+            { emoji: '🐘', name: 'Elephant', pronunciation: '/ˈeləfənt/' },
+            { emoji: '🐵', name: 'Monkey', pronunciation: '/ˈmʌŋki/' },
+            { emoji: '🦁', name: 'Lion', pronunciation: '/ˈlaɪən/' },
+            { emoji: '🐄', name: 'Cow', pronunciation: '/kaʊ/' },
+            { emoji: '🐷', name: 'Pig', pronunciation: '/pɪɡ/' },
+            { emoji: '🐎', name: 'Horse', pronunciation: '/hɔːrs/' },
+            { emoji: '🐑', name: 'Sheep', pronunciation: '/ʃiːp/' },
+            { emoji: '🦆', name: 'Duck', pronunciation: '/dʌk/' }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let currentAnimal = null;
+        let options = [];
+        let answered = false;
+
+        function generateQuestion() {
+            answered = false;
+            selectedAnswerIndex = null;
+            currentAnimal = animals[Math.floor(Math.random() * animals.length)];
+            
+            // Generate wrong options
+            const wrongOptions = animals.filter(animal => animal.name !== currentAnimal.name);
+            const shuffledWrong = wrongOptions.sort(() => Math.random() - 0.5).slice(0, 2);
+            
+            // Combine correct and wrong options
+            options = [currentAnimal, ...shuffledWrong].sort(() => Math.random() - 0.5);
+            
+            // Update UI
+            document.getElementById('animalEmoji').textContent = currentAnimal.emoji;
+            document.getElementById('questionNumber').textContent = currentQuestion + 1;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-button';
+                button.onclick = () => selectAnswer(index);
+                button.innerHTML = `${option.name}<div class="pronunciation">${option.pronunciation}</div>`;
+                optionsContainer.appendChild(button);
+            });
+            
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+            document.getElementById('nextButton').style.display = 'none';
+        }
+
+        let selectedAnswerIndex = null;
+
+        function selectAnswer(selectedIndex) {
+            if (answered) return;
+            
+            const buttons = document.querySelectorAll('.option-button');
+            const selectedOption = options[selectedIndex];
+            
+            // Remove previous selection highlight
+            buttons.forEach(button => {
+                button.classList.remove('selected');
+            });
+            
+            // Highlight selected option
+            buttons[selectedIndex].classList.add('selected');
+            selectedAnswerIndex = selectedIndex;
+            
+            // Speak the pronunciation
+            speakWord(selectedOption.name);
+            
+            // Show confirmation
+            showConfirmation(selectedOption.name);
+        }
+
+        function showConfirmation(selectedName) {
+            const feedback = document.getElementById('feedback');
+            feedback.innerHTML = `
+                <div style="margin: 20px 0;">
+                    <p style="font-size: 1.2rem; margin-bottom: 15px;">
+                        Apakah Anda yakin memilih <strong>${selectedName}</strong>?
+                    </p>
+                    <button class="confirm-button" onclick="confirmAnswer()" style="margin-right: 10px;">Ya, Yakin</button>
+                    <button class="cancel-button" onclick="cancelSelection()">Batal</button>
+                </div>
+            `;
+            feedback.className = 'feedback';
+        }
+
+        function confirmAnswer() {
+            if (selectedAnswerIndex === null) return;
+            
+            answered = true;
+            const selectedOption = options[selectedAnswerIndex];
+            const buttons = document.querySelectorAll('.option-button');
+            const feedback = document.getElementById('feedback');
+            
+            if (selectedOption.name === currentAnimal.name) {
+                // Correct answer
+                buttons[selectedAnswerIndex].classList.add('correct');
+                feedback.textContent = `Benar! ${currentAnimal.name} - ${currentAnimal.pronunciation}`;
+                feedback.className = 'feedback correct';
+                score += 10;
+                document.getElementById('score').textContent = score;
+            } else {
+                // Wrong answer
+                buttons[selectedAnswerIndex].classList.add('incorrect');
+                // Highlight correct answer
+                options.forEach((option, index) => {
+                    if (option.name === currentAnimal.name) {
+                        buttons[index].classList.add('correct');
+                    }
+                });
+                feedback.textContent = `Salah! Jawaban yang benar adalah ${currentAnimal.name} - ${currentAnimal.pronunciation}`;
+                feedback.className = 'feedback incorrect';
+            }
+            
+            // Disable all buttons
+            buttons.forEach(button => {
+                button.style.pointerEvents = 'none';
+            });
+            
+            // Show next button
+            setTimeout(() => {
+                document.getElementById('nextButton').style.display = 'inline-block';
+            }, 1500);
+        }
+
+        function cancelSelection() {
+            const buttons = document.querySelectorAll('.option-button');
+            buttons.forEach(button => {
+                button.classList.remove('selected');
+            });
+            selectedAnswerIndex = null;
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+        }
+
+        function speakWord(word) {
+            // Create a simple text-to-speech using Web Speech API
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.8;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion >= 10) {
+                // Game finished
+                const feedback = document.getElementById('feedback');
+                feedback.innerHTML = `
+                    <div style="font-size: 1.6rem; margin: 20px 0;">
+                        🎉 Permainan Selesai! 🎉<br>
+                        Skor Akhir: ${score}/100
+                    </div>
+                `;
+                feedback.className = 'feedback';
+                document.getElementById('nextButton').textContent = 'Main Lagi';
+                document.getElementById('nextButton').onclick = restartGame;
+            } else {
+                generateQuestion();
+            }
+        }
+
+        function restartGame() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('nextButton').textContent = 'Soal Berikutnya';
+            document.getElementById('nextButton').onclick = nextQuestion;
+            generateQuestion();
+        }
+
+        async function onConfigChange(config) {
+            const gameTitle = config.game_title || defaultConfig.game_title;
+            const instructionText = config.instruction_text || defaultConfig.instruction_text;
+            const scoreLabel = config.score_label || defaultConfig.score_label;
+
+            document.getElementById('gameTitle').textContent = gameTitle;
+            document.getElementById('instructions').textContent = instructionText;
+            document.getElementById('scoreLabel').innerHTML = `${scoreLabel}: <span id="score">${score}</span>`;
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["game_title", config.game_title || defaultConfig.game_title],
+                ["instruction_text", config.instruction_text || defaultConfig.instruction_text],
+                ["score_label", config.score_label || defaultConfig.score_label]
+            ]);
+        }
+
+        // Initialize the game
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities,
+                mapToEditPanelValues
+            });
+        }
+
+        // Start the first question
+        generateQuestion();
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99ef028855abef6a',t:'MTc2MzIxMjQ0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
